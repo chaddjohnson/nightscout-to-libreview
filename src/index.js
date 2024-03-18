@@ -2,21 +2,10 @@ const dayjs = require('dayjs');
 const uuid = require('uuid');
 const colors = require('colors');
 const prompt = require('prompt');
-const fs = require('fs');
+const config = require('./functions/config');
+const sync = require('./functions/sync');
+
 require('dotenv').config({ path: __dirname + '/../config.env' });
-
-const libre = require('./functions/libre');
-const nightscout = require('./functions/nightscout');
-
-const CONFIG_NAME = 'config.json';
-const DEFAULT_CONFIG = {};
-
-if (!fs.existsSync(CONFIG_NAME)) {
-  fs.writeFileSync(CONFIG_NAME, JSON.stringify(DEFAULT_CONFIG));
-}
-
-const rawConfig = fs.readFileSync(CONFIG_NAME);
-let config = JSON.parse(rawConfig);
 
 prompt.get(
   [
@@ -24,39 +13,38 @@ prompt.get(
       name: 'nightscoutUrl',
       description: 'please enter your nightscout url',
       required: true,
-      default: config.nightscoutUrl
+      default: config.get('nightscoutUrl')
     },
     {
       name: 'nightscoutToken',
       description: 'please enter your nightscout token',
       required: false,
-      default: config.nightscoutToken
+      default: config.get('nightscoutToken')
     },
     {
       name: 'libreUsername',
       description: 'please enter your libreview username',
       required: true,
-      default: config.libreUsername
+      default: config.get('libreUsername')
     },
     {
       name: 'librePassword',
       description: 'please enter your libreview password',
       required: true,
-      default: config.librePassword
+      default: config.get('librePassword')
     },
     {
-      name: 'year',
-      description: 'please enter the year you want to transfer to libreview',
-      required: true,
-      type: 'number',
-      default: new Date().getFullYear()
+      name: 'libreModelName',
+      description: 'please enter your Libre model name',
+      required: false,
+      default: config.get('libreModelName') || 'com.abbott.librelink.de'
     },
     {
-      name: 'month',
-      description: 'please enter the month you want to transfer to libreview',
+      name: 'startDate',
+      description:
+        'please enter the date in YYYY-MM-DD format from which you want to transfer to libreview',
       required: true,
-      type: 'number',
-      default: new Date().getMonth()
+      default: dayjs().subtract(1, 'month').format('YYYY-MM-DD')
     },
     {
       name: 'libreResetDevice',
@@ -67,79 +55,27 @@ prompt.get(
       default: false
     }
   ],
-  function (err, result) {
+  async function (err, result) {
     if (err) {
       return onErr(err);
     }
 
-    config = Object.assign({}, config, {
+    const { startDate, libreResetDevice } = result;
+
+    syncConfig = Object.assign({}, config, {
       nightscoutUrl: result.nightscoutUrl,
       nightscoutToken: result.nightscoutToken,
       libreUsername: result.libreUsername,
       librePassword: result.librePassword,
+      libreModelName: result.libreModelName,
       libreDevice:
-        result.libreResetDevice || !!!config.libreDevice
+        result.libreResetDevice || !!!config.get('libreDevice')
           ? uuid.v4().toUpperCase()
-          : config.libreDevice
+          : config.get('libreDevice'),
+      lastSyncTimestamp: config.get('lastSyncTimestamp')
     });
 
-    fs.writeFileSync(CONFIG_NAME, JSON.stringify(config));
-
-    (async () => {
-      const fromDate = dayjs(`${result.year}-${result.month}-01`).format(
-        'YYYY-MM-DD'
-      );
-      const toDate = dayjs(`${result.year}-${result.month + 1}-01`).format(
-        'YYYY-MM-DD'
-      );
-
-      console.log('transfer time span', fromDate.gray, toDate.gray);
-
-      const glucoseEntries = await nightscout.getNightscoutGlucoseEntries(
-        config.nightscoutUrl,
-        config.nightscoutToken,
-        fromDate,
-        toDate
-      );
-      const foodEntries = await nightscout.getNightscoutFoodEntries(
-        config.nightscoutUrl,
-        config.nightscoutToken,
-        fromDate,
-        toDate
-      );
-      const insulinEntries = await nightscout.getNightscoutInsulinEntries(
-        config.nightscoutUrl,
-        config.nightscoutToken,
-        fromDate,
-        toDate
-      );
-
-      if (
-        glucoseEntries.length > 0 ||
-        foodEntries.length > 0 ||
-        insulinEntries.length > 0
-      ) {
-        const auth = await libre.authLibreView(
-          config.libreUsername,
-          config.librePassword,
-          config.libreDevice,
-          result.libreResetDevice
-        );
-        if (!!!auth) {
-          console.log('libre auth failed!'.red);
-
-          return;
-        }
-
-        await libre.transferLibreView(
-          config.libreDevice,
-          auth,
-          glucoseEntries,
-          foodEntries,
-          insulinEntries
-        );
-      }
-    })();
+    await sync(syncConfig, { startDate, libreResetDevice });
   }
 );
 

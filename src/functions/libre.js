@@ -83,6 +83,7 @@ const authLibreView = async function (username, password, device, setDevice) {
 const transferLibreView = async function (
   device,
   token,
+  libreModelName,
   glucoseEntries,
   foodEntries,
   insulinEntries
@@ -103,7 +104,7 @@ const transferLibreView = async function (
         device: {
           hardwareDescriptor: 'iPhone14,2',
           osVersion: '15.4.1',
-          modelName: 'com.abbott.librelink.de',
+          modelName: libreModelName,
           osType: 'iOS',
           uniqueIdentifier: device,
           hardwareName: 'iPhone'
