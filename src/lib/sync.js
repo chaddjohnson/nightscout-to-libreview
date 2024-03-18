@@ -3,30 +3,31 @@ const libre = require('./libre');
 const nightscout = require('./nightscout');
 const config = require('./config');
 
-const sync = async function (config, { startDate, libreResetDevice }) {
+const sync = async function (syncConfig, options = {}) {
   // Save config now in case of a failure to facilitate an easy retry.
-  config.write(config);
+  config.write(syncConfig);
 
-  const fromDate = dayjs(startDate).format('YYYY-MM-DD');
+  const { libreResetDevice = false } = options;
+  const fromDate = dayjs(syncConfig.lastSyncTimestamp).format('YYYY-MM-DD');
   const toDate = dayjs().add(1, 'day').format('YYYY-MM-DD');
 
   console.log('transfer time span', fromDate.gray, toDate.gray);
 
   const glucoseEntries = await nightscout.getNightscoutGlucoseEntries(
-    config.nightscoutUrl,
-    config.nightscoutToken,
+    syncConfig.nightscoutUrl,
+    syncConfig.nightscoutToken,
     fromDate,
     toDate
   );
   const foodEntries = await nightscout.getNightscoutFoodEntries(
-    config.nightscoutUrl,
-    config.nightscoutToken,
+    syncConfig.nightscoutUrl,
+    syncConfig.nightscoutToken,
     fromDate,
     toDate
   );
   const insulinEntries = await nightscout.getNightscoutInsulinEntries(
-    config.nightscoutUrl,
-    config.nightscoutToken,
+    syncConfig.nightscoutUrl,
+    syncConfig.nightscoutToken,
     fromDate,
     toDate
   );
@@ -38,9 +39,9 @@ const sync = async function (config, { startDate, libreResetDevice }) {
     insulinEntries.length > 0
   ) {
     const auth = await libre.authLibreView(
-      config.libreUsername,
-      config.librePassword,
-      config.libreDevice,
+      syncConfig.libreUsername,
+      syncConfig.librePassword,
+      syncConfig.libreDevice,
       libreResetDevice
     );
     if (!!!auth) {
@@ -50,8 +51,8 @@ const sync = async function (config, { startDate, libreResetDevice }) {
     }
 
     // await libre.transferLibreView(
-    //   config.libreDevice,
-    //   config.libreModelName,
+    //   syncConfig.libreDevice,
+    //   syncConfig.libreModelName,
     //   auth,
     //   glucoseEntries,
     //   foodEntries,
@@ -59,7 +60,7 @@ const sync = async function (config, { startDate, libreResetDevice }) {
     // );
 
     // Re-save config to include last sync timestamp following a successful sync.
-    config.write({ ...config, lastSyncTimestamp });
+    config.write({ ...syncConfig, lastSyncTimestamp });
   }
 };
 

@@ -2,8 +2,8 @@ const dayjs = require('dayjs');
 const uuid = require('uuid');
 const colors = require('colors');
 const prompt = require('prompt');
-const config = require('./lib/config');
-const sync = require('./lib/sync');
+const config = require('../lib/config');
+const sync = require('../lib/sync');
 
 require('dotenv').config({ path: __dirname + '/../config.env' });
 
@@ -72,10 +72,10 @@ prompt.get(
         result.libreResetDevice || !!!config.get('libreDevice')
           ? uuid.v4().toUpperCase()
           : config.get('libreDevice'),
-      lastSyncTimestamp: config.get('lastSyncTimestamp')
+      lastSyncTimestamp: config.get('lastSyncTimestamp') || startDate
     });
 
-    await sync(syncConfig, { startDate, libreResetDevice });
+    await sync(syncConfig, { libreResetDevice });
   }
 );
 
