@@ -4,7 +4,7 @@ const dayjs = require('dayjs');
 const colors = require('colors');
 
 const randomInt = function (min, max) {
-  return Math.floor(Math.random() * (max - min + 1) + min)
+  return Math.floor(Math.random() * (max - min + 1) + min);
 };
 
 const selectData = function (entries) {
@@ -24,7 +24,7 @@ const selectData = function (entries) {
   const result = [];
 
   for (const day of Object.values(groups)) {
-    const dayEntries = day.filter(singleEntry => {
+    const dayEntries = day.filter((singleEntry) => {
       const hour = dayjs(singleEntry.timestamp).hour();
 
       return hour >= 7 && hour < 21;
@@ -38,7 +38,7 @@ const selectData = function (entries) {
       // Select 8 dates evenly distributed over the 7am-9pm range
       const slots = Array.from({ length: selectionSize }, (_, i) => i);
       const slotSize = Math.floor(dayEntries.length / selectionSize);
-      const slotPositions = slots.map(slot => slot * slotSize);
+      const slotPositions = slots.map((slot) => slot * slotSize);
       for (const pos of slotPositions) {
         const slotDates = dayEntries.slice(pos, pos + slotSize);
         result.push(slotDates[Math.floor(Math.random() * slotDates.length)]);
@@ -54,18 +54,22 @@ const authLibreView = async function (username, password, device, setDevice) {
 
   const data = {
     DeviceId: device,
-    GatewayType: "FSLibreLink.iOS",
+    GatewayType: 'FSLibreLink.iOS',
     SetDevice: setDevice,
     UserName: username,
-    Domain: "Libreview",
+    Domain: 'Libreview',
     Password: password
   };
 
-  const response = await axios.default.post('https://api-eu.libreview.io/lsl/api/nisperson/getauthentication', data, {
-    headers: {
-      'Content-Type': 'application/json'
+  const response = await axios.default.post(
+    'https://api-eu.libreview.io/lsl/api/nisperson/getauthentication',
+    data,
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
     }
-  });
+  );
 
   console.log('authLibreView, response', response.data.gray);
 
@@ -74,9 +78,15 @@ const authLibreView = async function (username, password, device, setDevice) {
   }
 
   return response.data.result.UserToken;
-}
+};
 
-const transferLibreView = async function (device, token, glucoseEntries, foodEntries, insulinEntries) {
+const transferLibreView = async function (
+  device,
+  token,
+  glucoseEntries,
+  foodEntries,
+  insulinEntries
+) {
   console.log('transferLibreView'.blue);
 
   console.log('glucose entries', (glucoseEntries || []).length.toString().gray);
@@ -87,35 +97,35 @@ const transferLibreView = async function (device, token, glucoseEntries, foodEnt
 
   const data = {
     UserToken: token,
-    GatewayType: "FSLibreLink.iOS",
+    GatewayType: 'FSLibreLink.iOS',
     DeviceData: {
       header: {
         device: {
-          hardwareDescriptor: "iPhone14,2",
-          osVersion: "15.4.1",
-          modelName: "com.abbott.librelink.de",
-          osType: "iOS",
+          hardwareDescriptor: 'iPhone14,2',
+          osVersion: '15.4.1',
+          modelName: 'com.abbott.librelink.de',
+          osType: 'iOS',
           uniqueIdentifier: device,
-          hardwareName: "iPhone"
+          hardwareName: 'iPhone'
         }
       },
       measurementLog: {
         capabilities: [
-          "scheduledContinuousGlucose",
-          "unscheduledContinuousGlucose",
-          "bloodGlucose",
-          "insulin",
-          "food",
-          "generic-com.abbottdiabetescare.informatics.exercise",
-          "generic-com.abbottdiabetescare.informatics.customnote",
-          "generic-com.abbottdiabetescare.informatics.ondemandalarm.low",
-          "generic-com.abbottdiabetescare.informatics.ondemandalarm.high",
-          "generic-com.abbottdiabetescare.informatics.ondemandalarm.projectedlow",
-          "generic-com.abbottdiabetescare.informatics.ondemandalarm.projectedhigh",
-          "generic-com.abbottdiabetescare.informatics.sensorstart",
-          "generic-com.abbottdiabetescare.informatics.error",
-          "generic-com.abbottdiabetescare.informatics.isfGlucoseAlarm",
-          "generic-com.abbottdiabetescare.informatics.alarmSetting"
+          'scheduledContinuousGlucose',
+          'unscheduledContinuousGlucose',
+          'bloodGlucose',
+          'insulin',
+          'food',
+          'generic-com.abbottdiabetescare.informatics.exercise',
+          'generic-com.abbottdiabetescare.informatics.customnote',
+          'generic-com.abbottdiabetescare.informatics.ondemandalarm.low',
+          'generic-com.abbottdiabetescare.informatics.ondemandalarm.high',
+          'generic-com.abbottdiabetescare.informatics.ondemandalarm.projectedlow',
+          'generic-com.abbottdiabetescare.informatics.ondemandalarm.projectedhigh',
+          'generic-com.abbottdiabetescare.informatics.sensorstart',
+          'generic-com.abbottdiabetescare.informatics.error',
+          'generic-com.abbottdiabetescare.informatics.isfGlucoseAlarm',
+          'generic-com.abbottdiabetescare.informatics.alarmSetting'
         ],
         bloodGlucoseEntries: [],
         genericEntries: [],
@@ -125,14 +135,18 @@ const transferLibreView = async function (device, token, glucoseEntries, foodEnt
         unscheduledContinuousGlucoseEntries: glucoseSelection || []
       }
     },
-    Domain: "Libreview"
+    Domain: 'Libreview'
   };
 
-  const response = await axios.default.post('https://api-eu.libreview.io/lsl/api/measurements', data, {
-    headers: {
-      'Content-Type': 'application/json'
+  const response = await axios.default.post(
+    'https://api-eu.libreview.io/lsl/api/measurements',
+    data,
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
     }
-  });
+  );
 
   console.log('transferLibreView, response', response.data.gray);
 };
