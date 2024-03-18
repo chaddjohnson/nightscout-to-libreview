@@ -2,8 +2,8 @@ const dayjs = require('dayjs');
 const uuid = require('uuid');
 const colors = require('colors');
 const prompt = require('prompt');
-const config = require('./functions/config');
-const sync = require('./functions/sync');
+const config = require('./lib/config');
+const sync = require('./lib/sync');
 
 require('dotenv').config({ path: __dirname + '/../config.env' });
 
