@@ -104,11 +104,11 @@ const getNightscoutGlucoseEntries = async function (
   return data.map((e) => {
     return {
       extendedProperties: {
-        highOutOfRange: e.sgv >= 400 ? 'true' : 'false',
+        highOutOfRange: e.sgv >= 180 ? 'true' : 'false',
         canMerge: 'true',
         isFirstAfterTimeChange: false,
         factoryTimestamp: e.sysTime,
-        lowOutOfRange: e.sgv <= 40 ? 'true' : 'false'
+        lowOutOfRange: e.sgv <= 70 ? 'true' : 'false'
       },
       recordNumber: e.id,
       timestamp: e.dateString,

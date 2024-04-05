@@ -82,8 +82,8 @@ const authLibreView = async function (username, password, device, setDevice) {
 
 const transferLibreView = async function (
   device,
-  token,
   libreModelName,
+  token,
   glucoseEntries,
   foodEntries,
   insulinEntries
