@@ -30,7 +30,7 @@ const selectData = function (entries) {
       return hour >= 7 && hour < 21;
     });
 
-    const selectionSize = randomInt(8, 10);
+    const selectionSize = randomInt(8, 13);
 
     if (dayEntries.length < selectionSize) {
       result.push(...dayEntries);
