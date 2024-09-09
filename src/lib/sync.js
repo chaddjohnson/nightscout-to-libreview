@@ -51,12 +51,7 @@ const sync = async function (syncConfig, options = {}) {
       syncConfig.libreDevice,
       libreResetDevice
     );
-    console.log(
-      syncConfig.libreUsername,
-      syncConfig.librePassword,
-      syncConfig.libreDevice,
-      libreResetDevice
-    );
+
     if (!!!auth) {
       console.log('libre auth failed!'.red);
       return;
